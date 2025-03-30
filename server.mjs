@@ -3,12 +3,24 @@ import cors from "cors";
 import puppeteer from "puppeteer";
 import { runLighthouse } from "./lighthouseAnalyzer.mjs";
 import cloudinary from "cloudinary";
+import dotenv from "dotenv";
+
+dotenv.config(); // Load environment variables
+
+// ✅ Validate required environment variables
+const REQUIRED_ENV_VARS = ["CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET"];
+REQUIRED_ENV_VARS.forEach((key) => {
+  if (!process.env[key]) {
+    console.error(`❌ Error: Missing required environment variable: ${key}`);
+    process.exit(1);
+  }
+});
 
 // ✅ Configure Cloudinary
 cloudinary.v2.config({
-  cloud_name: "df4prcuev",
-  api_key: "412985248428749",
-  api_secret: "x00qo_JQnpzYIwlmhGX8X_TuMNk",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 /**
@@ -23,7 +35,7 @@ const uploadToCloudinary = async (base64Image) => {
     });
     return result.secure_url;
   } catch (error) {
-    console.error("Cloudinary Upload Error:", error);
+    console.error("❌ Cloudinary Upload Error:", error.message);
     return null;
   }
 };
@@ -35,10 +47,16 @@ app.use(cors());
 
 app.post("/analyze", async (req, res) => {
   const { url } = req.body;
-  if (!url) return res.status(400).json({ error: "URL is required" });
+  if (!url) {
+    return res.status(400).json({ error: "URL is required" });
+  }
 
+  let browser;
   try {
-    const browser = await puppeteer.launch({ headless: "new", args: ["--no-sandbox", "--disable-setuid-sandbox"] });
+    browser = await puppeteer.launch({
+      headless: "new",
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: "networkidle2" });
 
@@ -51,12 +69,11 @@ app.post("/analyze", async (req, res) => {
     // ✅ Run Lighthouse Analysis
     let lighthouseResults = await runLighthouse(url);
 
-    await browser.close();
-
+    // ✅ Compute UI/UX Score
     let uiuxScore =
-      lighthouseResults.performance.score &&
-      lighthouseResults.accessibility.score &&
-      lighthouseResults.bestPractices.score
+      lighthouseResults.performance?.score &&
+      lighthouseResults.accessibility?.score &&
+      lighthouseResults.bestPractices?.score
         ? (lighthouseResults.performance.score +
             lighthouseResults.accessibility.score +
             lighthouseResults.bestPractices.score) /
@@ -71,13 +88,18 @@ app.post("/analyze", async (req, res) => {
       scores: lighthouseResults,
     });
   } catch (error) {
+    console.error("❌ Error analyzing website:", error.message);
     res.status(500).json({
       error: "Failed to analyze website",
-      details: error.toString(),
+      details: error.message,
     });
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 });
 
 // ✅ Start the Express server
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
