@@ -43,7 +43,14 @@ const uploadToCloudinary = async (base64Image) => {
 // ✅ Initialize Express
 const app = express();
 app.use(express.json());
-app.use(cors());
+// ✅ Proper CORS setup
+app.use(
+  cors({
+    origin: "*", // Allow all origins (Change to specific origin if needed)
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
 
 app.post("/analyze", async (req, res) => {
   const { url } = req.body;
