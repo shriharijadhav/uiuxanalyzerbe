@@ -5,6 +5,7 @@
   "main": "server.mjs",
   "type": "module",
   "scripts": {
+    "postinstall": "puppeteer install",
     "start": "node server.mjs",
     "build": "echo 'No build step required'"
   },
