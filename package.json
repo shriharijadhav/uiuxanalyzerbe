@@ -5,7 +5,8 @@
   "main": "server.mjs",
   "type": "module",
   "scripts": {
-    "start": "node server.mjs"
+    "start": "node server.mjs",
+    "build": "echo 'No build step required'"
   },
   "dependencies": {
     "chrome-launcher": "^1.1.2",
