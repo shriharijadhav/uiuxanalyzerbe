@@ -64,9 +64,10 @@ app.post("/analyze", async (req, res) => {
 
     const browser = await puppeteer.launch({
       headless: "new",
-      executablePath: puppeteer.executablePath(),
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(), // ✅ Use the environment variable or Puppeteer's default
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
+    
     
     
     const page = await browser.newPage();
