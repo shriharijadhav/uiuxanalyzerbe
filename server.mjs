@@ -60,11 +60,14 @@ app.post("/analyze", async (req, res) => {
 
   let browser;
   try {
+    console.log("✅ Puppeteer executablePath:", puppeteer.executablePath());
+
     const browser = await puppeteer.launch({
       headless: "new",
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath() || "/usr/bin/chromium-browser", // ✅ Use Puppeteer's Chromium
+      executablePath: puppeteer.executablePath(),
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
+    
     
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: "networkidle2" });
