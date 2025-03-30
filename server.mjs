@@ -62,7 +62,7 @@ app.post("/analyze", async (req, res) => {
   try {
     const browser = await puppeteer.launch({
       headless: "new",
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(), // ✅ Use Puppeteer's Chromium
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath() || "/usr/bin/chromium-browser", // ✅ Use Puppeteer's Chromium
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
     
